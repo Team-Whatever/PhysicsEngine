@@ -141,6 +141,9 @@
     <ClCompile Include="BungeeForceGeneratorSystem.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
+    <ClCompile Include="BuoyancyForceGeneratorSystem.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -306,6 +309,12 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="BungeeForceGeneratorSystem.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="BuoyancyForceGeneratorSystem.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="BuoyancyComponent.h">
       <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>

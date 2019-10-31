@@ -16,6 +16,7 @@
 #include "DynamicPointLightSystem.h"
 #include "DynamicSpotLightSystem.h"
 #include "BungeeForceGeneratorSystem.h"
+#include "BuoyancyForceGeneratorSystem.h"
 #include <string>
 #include <stdlib.h>     
 #include <time.h>       
@@ -31,6 +32,7 @@ void MakeABunchaObjects(ECSWorld& world);
 void MakeABunchaSprings(ECSWorld& world);
 void MakeABunchaSpheres(ECSWorld& world);
 void MakeABunchaBungees(ECSWorld& world);
+void MakeABunchaBuoyancy(ECSWorld& world);
 void MakeACable(ECSWorld& world);
 void SetupLights(ECSWorld& world);
 
@@ -61,6 +63,7 @@ int main()
 	//MakeABunchaSprings(world);
 	//MakeACable(world);
 	MakeABunchaBungees(world);
+	MakeABunchaBuoyancy(world);
 
 	// Create Systems
 	world.getSystemManager().addSystem<RenderingSystem>();
@@ -80,6 +83,7 @@ int main()
 	world.getSystemManager().addSystem<DynamicPointLightSystem>();
 	world.getSystemManager().addSystem<DynamicSpotLightSystem>();
 	world.getSystemManager().addSystem<BungeeForceGeneratorSystem>();
+	world.getSystemManager().addSystem<BuoyancyForceGeneratorSystem>();
 
 	float time = glfwGetTime();
 	float stepTime = glfwGetTime();
@@ -134,6 +138,7 @@ int main()
 		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BungeeForceGeneratorSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<BuoyancyForceGeneratorSystem>().Update(fixedDeltaTime);
 
 		// Physics Solvers
 		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
@@ -420,4 +425,22 @@ void MakeABunchaBungees(ECSWorld& world)
 	bungeeEntity2.addComponent<TransformComponent>();
 	bungeeEntity2.addComponent<BungeeComponent>(3, 0.5f, e, e3);
 
+}
+
+void MakeABunchaBuoyancy(ECSWorld& world)
+{
+	for (int i = 0; i < 1; i++)
+	{
+		Vector3 pos = Vector3(RANDOM_FLOAT(-15.0f, 15.0f), RANDOM_FLOAT(20.0f, 30.0f), RANDOM_FLOAT(-15.0f, 15.0f));
+		Vector3 scale = Vector3(30, 30, 30);
+
+		auto entity = world.createEntity();
+		entity.addComponent<TransformComponent>(pos);
+		entity.addComponent<ParticleComponent>();
+		//entity.addComponent<SphereComponent>();
+
+		auto b = world.createEntity();
+		b.addComponent<TransformComponent>(pos, scale);
+		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity );
+	}
 }

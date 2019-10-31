@@ -98,6 +98,6 @@ namespace Reality
 			Color col = collided ? Color(1, 0, 0, 1) : Color(0, 1, 0, 1);
 			getWorld().data.renderUtil->DrawSphere(transform1.position, sphere1.radius, col);
 		}
-		getWorld().data.renderUtil->DrawCube(Vector3(0, 20, 0), Vector3(30, 30, 30));
+		//getWorld().data.renderUtil->DrawCube(Vector3(0, 20, 0), Vector3(30, 30, 30));
 	}
 }
