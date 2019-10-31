@@ -15,6 +15,7 @@
 #include "DynamicDirectionalLightSystem.h"
 #include "DynamicPointLightSystem.h"
 #include "DynamicSpotLightSystem.h"
+#include "BungeeForceGeneratorSystem.h"
 #include <string>
 #include <stdlib.h>     
 #include <time.h>       
@@ -29,6 +30,7 @@ void LoadModels(ECSWorld& world);
 void MakeABunchaObjects(ECSWorld& world);
 void MakeABunchaSprings(ECSWorld& world);
 void MakeABunchaSpheres(ECSWorld& world);
+void MakeABunchaBungees(ECSWorld& world);
 void MakeACable(ECSWorld& world);
 void SetupLights(ECSWorld& world);
 
@@ -54,10 +56,11 @@ int main()
 	wall.addComponent<ModelComponent>("Resources/Models/Sponza-master/sponza.obj");
 
 	SetupLights(world);
-	MakeABunchaObjects(world);
-	MakeABunchaSpheres(world);
+	//MakeABunchaObjects(world);
+	//MakeABunchaSpheres(world);
 	//MakeABunchaSprings(world);
 	//MakeACable(world);
+	MakeABunchaBungees(world);
 
 	// Create Systems
 	world.getSystemManager().addSystem<RenderingSystem>();
@@ -76,6 +79,7 @@ int main()
 	world.getSystemManager().addSystem<DynamicDirectionalLightSystem>();
 	world.getSystemManager().addSystem<DynamicPointLightSystem>();
 	world.getSystemManager().addSystem<DynamicSpotLightSystem>();
+	world.getSystemManager().addSystem<BungeeForceGeneratorSystem>();
 
 	float time = glfwGetTime();
 	float stepTime = glfwGetTime();
@@ -129,6 +133,7 @@ int main()
 		world.getSystemManager().getSystem<PairedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<BungeeForceGeneratorSystem>().Update(fixedDeltaTime);
 
 		// Physics Solvers
 		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
@@ -387,4 +392,32 @@ void SetupLights(ECSWorld& world)
 			pl1.addComponent<RotateComponent>((i % 2 == 0 ? 1 : -1) * 100,100,100);
 		}
 	}
+}
+
+void MakeABunchaBungees(ECSWorld& world)
+{
+	auto e = world.createEntity();
+	float yOffset = 30;
+	e.addComponent<TransformComponent>(Vector3(-2.5f, 0 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
+	e.addComponent<ParticleComponent>(1000.0f, Vector3(0, 0, 0), 0);
+	e.addComponent<SphereComponent>();
+
+	auto e2 = world.createEntity();
+	e2.addComponent<TransformComponent>(Vector3(-3.0f, -2 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
+	e2.addComponent<ParticleComponent>(2);
+	e2.addComponent<SphereComponent>();
+
+	auto e3 = world.createEntity();
+	e3.addComponent<TransformComponent>(Vector3(3.0f, -2 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
+	e3.addComponent<ParticleComponent>(2);
+	e3.addComponent<SphereComponent>();
+
+	auto bungeeEntity1 = world.createEntity();
+	bungeeEntity1.addComponent<TransformComponent>();
+	bungeeEntity1.addComponent<BungeeComponent>(2, 1, e, e2);
+
+	auto bungeeEntity2 = world.createEntity();
+	bungeeEntity2.addComponent<TransformComponent>();
+	bungeeEntity2.addComponent<BungeeComponent>(3, 0.5f, e, e3);
+
 }

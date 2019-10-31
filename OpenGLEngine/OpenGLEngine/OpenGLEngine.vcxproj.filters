@@ -138,6 +138,9 @@
     <ClCompile Include="CableComponentSystem.cpp">
       <Filter>TestCS</Filter>
     </ClCompile>
+    <ClCompile Include="BungeeForceGeneratorSystem.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -298,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="CableComponentSystem.h">
       <Filter>TestCS</Filter>
+    </ClInclude>
+    <ClInclude Include="BungeeComponent.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="BungeeForceGeneratorSystem.h">
+      <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
