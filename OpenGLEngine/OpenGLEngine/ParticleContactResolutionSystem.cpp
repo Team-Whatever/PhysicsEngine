@@ -110,7 +110,7 @@ namespace Reality
 		{
 			contact.entityB.getComponent<TransformComponent>().position += movePerMass * invM2;
 		}
-		//contact.penetration = 0;
+		contact.penetration = 0;
 	}
 
 	void ParticleContactResolutionSystem::UpdateInterpenetration(ParticleContactComponent & bestContact, ParticleContactComponent & contact)
@@ -141,35 +141,70 @@ namespace Reality
 		iterations = getEntities().size();
 		if (getEntities().size() > 0)
 		{
-			ParticleContactComponent& bestContact = getEntities()[0].getComponent<ParticleContactComponent>();
-			ParticleContactComponent& lastBestContact = getEntities()[0].getComponent<ParticleContactComponent>();
+			unsigned int bestContactIndex = 0;
+			unsigned int lastBest = 0;
 			while (iterationsUsed < iterations)
 			{
 				// Find the contact with the largest closing velocity
 				float max = 0;
-				for (auto e : getEntities())
+				for (int i = 0; i < getEntities().size(); i++)
 				{
+					auto e = getEntities()[i];
 					auto &contact = e.getComponent<ParticleContactComponent>();
 					if (iterationsUsed > 0)
 					{
-						UpdateInterpenetration(lastBestContact, contact);
+						UpdateInterpenetration(getEntities()[lastBest].getComponent<ParticleContactComponent>(), contact);
 					}
 					float sepVel = CalculateSeparatingVelocity(contact);
 					if (sepVel < max)
 					{
 						max = sepVel;
-						bestContact = contact;
+						bestContactIndex = i;
 					}
 				}
-				if (max >= 0)
+				if (max <= 0)
 				{
 					break;
 				}
+				auto& bestContact = getEntities()[bestContactIndex].getComponent<ParticleContactComponent>();
 				ResolveVelocity(bestContact, deltaTime);
 				ResolveInterpenetration(bestContact);
-				lastBestContact = bestContact;
+				lastBest = bestContactIndex;
 				iterationsUsed++;
 			}
+
+			iterationsUsed = 0;
+
+			//ParticleContactComponent& bestContact = getEntities()[0].getComponent<ParticleContactComponent>();
+			//ParticleContactComponent& lastBestContact = getEntities()[0].getComponent<ParticleContactComponent>();
+			//while (iterationsUsed < iterations)
+			//{
+			//	// Find the contact with the largest closing velocity
+			//	float max = 0;
+			//	for (auto e : getEntities())
+			//	{
+			//		auto &contact = e.getComponent<ParticleContactComponent>();
+			//		if (iterationsUsed > 0)
+			//		{
+			//			UpdateInterpenetration(getEntities()[bestContactIndex].getComponent<ParticleContactComponent>(), contact);
+			//		}
+			//		float penetration = contact.penetration;
+			//		if (penetration > max)
+			//		{
+			//			max = penetration;
+			//			bestContact = contact;
+			//		}
+			//	}
+			//	if (max >= 0)
+			//	{
+			//		break;
+			//	}
+			//	ResolveVelocity(bestContact, deltaTime);
+			//	//ResolveInterpenetration(bestContact);
+			//	//lastBestContact = bestContact;
+			//	iterationsUsed++;
+			//}
+
 			for (auto e : getEntities())
 			{
 				/*auto &contact = e.getComponent<ParticleContactComponent>();

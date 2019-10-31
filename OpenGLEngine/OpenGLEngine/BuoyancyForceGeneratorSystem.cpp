@@ -1,6 +1,7 @@
 #include "BuoyancyForceGeneratorSystem.h"
 #include "ParticleComponent.h"
 #include "TransformComponent.h"
+#include <string>
 
 namespace Reality
 {
@@ -12,10 +13,20 @@ namespace Reality
 
 	void BuoyancyForceGeneratorSystem::Update(float deltaTime)
 	{
+		GLFWwindow*  window = getWorld().data.renderUtil->window->glfwWindow;
+
+
 		for (auto e : getEntities())
 		{
 			auto& buoyancy = e.getComponent<BuoyancyComponent>();
 			auto& volumeTransform = e.getComponent<TransformComponent>();
+
+
+			if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE)
+				buoyancy.liquidDensity += 10;
+			if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE)
+				buoyancy.liquidDensity -= 10;
+
 			if (buoyancy.entity.hasComponent<ParticleComponent>() && 
 				buoyancy.entity.hasComponent<TransformComponent>() )
 			{
@@ -49,6 +60,25 @@ namespace Reality
 			}
 
 			getWorld().data.renderUtil->DrawCube(volumeTransform.position, volumeTransform.scale, volumeTransform.eulerAngles );
+			getWorld().data.renderUtil->RenderText("Density : " + std::to_string((int)buoyancy.liquidDensity), 10.0f, 1060.0f, 0.5f, Color(0, 1, 1, 1));
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+			AddNewBuoyancyComponent();
+	}
+
+	void BuoyancyForceGeneratorSystem::AddNewBuoyancyComponent()
+	{
+		Camera& camera = getWorld().data.renderUtil->camera;
+		Vector3 newPos = camera.Position + camera.Front * 10.0f;
+		Vector3 scale = Vector3(30, 30, 30);
+
+		auto entity = getWorld().createEntity();
+		entity.addComponent<TransformComponent>(newPos);
+		entity.addComponent<ParticleComponent>();
+
+		auto b = getWorld().createEntity();
+		b.addComponent<TransformComponent>(newPos, scale);
+		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity);
 	}
 }

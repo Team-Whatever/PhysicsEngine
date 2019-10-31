@@ -15,6 +15,7 @@
 #include "DynamicDirectionalLightSystem.h"
 #include "DynamicPointLightSystem.h"
 #include "DynamicSpotLightSystem.h"
+#include "RodSystem.h"
 #include "BungeeForceGeneratorSystem.h"
 #include "BuoyancyForceGeneratorSystem.h"
 #include <string>
@@ -34,6 +35,7 @@ void MakeABunchaSpheres(ECSWorld& world);
 void MakeABunchaBungees(ECSWorld& world);
 void MakeABunchaBuoyancy(ECSWorld& world);
 void MakeACable(ECSWorld& world);
+void MakeACableAndRod(ECSWorld& world);
 void SetupLights(ECSWorld& world);
 
 int main()
@@ -62,6 +64,7 @@ int main()
 	//MakeABunchaSpheres(world);
 	//MakeABunchaSprings(world);
 	//MakeACable(world);
+	//MakeACableAndRod(world);
 	MakeABunchaBungees(world);
 	MakeABunchaBuoyancy(world);
 
@@ -82,6 +85,7 @@ int main()
 	world.getSystemManager().addSystem<DynamicDirectionalLightSystem>();
 	world.getSystemManager().addSystem<DynamicPointLightSystem>();
 	world.getSystemManager().addSystem<DynamicSpotLightSystem>();
+	world.getSystemManager().addSystem<RodSystem>();
 	world.getSystemManager().addSystem<BungeeForceGeneratorSystem>();
 	world.getSystemManager().addSystem<BuoyancyForceGeneratorSystem>();
 
@@ -132,11 +136,12 @@ int main()
 		//float fixedDeltaTime = glfwGetKey(world.data.renderUtil->window->glfwWindow, GLFW_KEY_SPACE) == GLFW_PRESS ? 1 / 60.0f : 0;		
 		float fixedDeltaTime = 1 / 60.0f;
 		// Force Generators
-		world.getSystemManager().getSystem<GravityForceGeneratorSystem>().Update(fixedDeltaTime);
+		//world.getSystemManager().getSystem<GravityForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<FixedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<PairedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
+		//world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<RodSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BungeeForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BuoyancyForceGeneratorSystem>().Update(fixedDeltaTime);
 
@@ -322,6 +327,49 @@ void MakeACable(ECSWorld& world)
 	e.addComponent<CableComponent>(e1, e2, 20);
 }
 
+void MakeACableAndRod(ECSWorld& world)
+{
+	auto eFixed = world.createEntity();
+	eFixed.addComponent<TransformComponent>(Vector3(0, 40, 0));
+
+	auto e1 = world.createEntity();
+	e1.addComponent<TransformComponent>(Vector3(-10, 30, 0));
+	e1.addComponent<ParticleComponent>(1);
+
+	auto e2 = world.createEntity();
+	e2.addComponent<TransformComponent>(Vector3(-20, 20, 0));
+	e2.addComponent<ParticleComponent>(1);
+
+	auto e3 = world.createEntity();
+	e3.addComponent<TransformComponent>(Vector3(-10, 10, 0));
+	e3.addComponent<ParticleComponent>(1);
+
+	auto e4 = world.createEntity();
+	e4.addComponent<TransformComponent>(Vector3(0, 20, 0));
+	e4.addComponent<ParticleComponent>(1);
+
+	auto cable = world.createEntity();
+	cable.addComponent<CableComponent>(eFixed, e1, 20);
+
+	auto r12 = world.createEntity();
+	r12.addComponent<RodComponent>(e1, e2, 14.14);
+
+	auto r23 = world.createEntity();
+	r23.addComponent<RodComponent>(e2, e3, 14.14);
+
+	auto r34 = world.createEntity();
+	r34.addComponent<RodComponent>(e3, e4, 14.14);
+
+	auto r41 = world.createEntity();
+	r41.addComponent<RodComponent>(e4, e1, 14.14);
+
+	//auto r13 = world.createEntity();
+	//r13.addComponent<RodComponent>(e1, e3, 20);
+
+	//auto r24 = world.createEntity();
+	//r24.addComponent<RodComponent>(e2, e4, 20);
+}
+
 void SetupLights(ECSWorld& world)
 {
 	auto l = world.createEntity();
@@ -441,6 +489,7 @@ void MakeABunchaBuoyancy(ECSWorld& world)
 
 		auto b = world.createEntity();
 		b.addComponent<TransformComponent>(pos, scale);
-		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity );
+		//b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity );
+		b.addComponent<BuoyancyComponent>(10, 20, scale.y, 100, entity);
 	}
 }

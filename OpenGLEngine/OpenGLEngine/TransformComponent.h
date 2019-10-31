@@ -12,5 +12,6 @@ namespace Reality
 		Vector3 position;
 		Vector3 scale;
 		Vector3 eulerAngles;
+		Quaternion orientation;
 	};
 }

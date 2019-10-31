@@ -23,4 +23,5 @@ namespace Reality
 	using Mat3x3 = glm::mat3x3;
 	using Mat3x4 = glm::mat3x4;
 	using Mat4x4 = glm::mat4x4;
+	using Quaternion = glm::quat;
 }

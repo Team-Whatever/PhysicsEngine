@@ -24,6 +24,9 @@ namespace Reality
 				continue;
 			}
 
+			getWorld().data.renderUtil->DrawLine(cable.entityA.getComponent<TransformComponent>().position,
+				cable.entityB.getComponent<TransformComponent>().position);
+
 			Vector3 normal = glm::normalize(cable.entityB.getComponent<TransformComponent>().position -
 				cable.entityA.getComponent<TransformComponent>().position);
 

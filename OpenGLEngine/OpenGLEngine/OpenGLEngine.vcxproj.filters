@@ -144,6 +144,12 @@
     <ClCompile Include="BuoyancyForceGeneratorSystem.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
+    <ClCompile Include="RodSystem.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBodySystem.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -315,6 +321,18 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="BuoyancyComponent.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="RodComponent.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="RodSystem.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodyComponent.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodySystem.h">
       <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>

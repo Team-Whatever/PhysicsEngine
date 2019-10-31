@@ -12,5 +12,7 @@ namespace Reality
 	public:
 		BuoyancyForceGeneratorSystem();
 		void Update(float deltaTime);
+
+		void AddNewBuoyancyComponent();
 	};
 }
