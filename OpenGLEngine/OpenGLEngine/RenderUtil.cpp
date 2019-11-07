@@ -18,6 +18,7 @@ namespace Reality
 		SetUpCubePrimitive();
 		SetUpSpherePrimitive();
 		SetUpLinePrimitive();
+		SetupTrianglePrimitive();
 		SetupTextRender();
 	}
 
@@ -347,6 +348,12 @@ namespace Reality
 		glEnableVertexAttribArray(0);
 	}
 
+	void RenderUtil::SetupTrianglePrimitive()
+	{
+		glGenVertexArrays(1, &triangleVAO);
+		glGenBuffers(1, &triangleVBO);
+	}
+
 	void RenderUtil::SetupTextRender()
 	{
 		// Setup the shader
@@ -489,21 +496,8 @@ namespace Reality
 		float time = glfwGetTime();
 		glBindVertexArray(cubeVAO);
 		primitiveShader.use();
-		// view/projection transformations
-		//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window->width / (float)window->height, 0.1f, 1000.0f);
-		//glm::mat4 view = camera.GetViewMatrix();
-		//primitiveShader.setMat4("projection", projection);
-		//primitiveShader.setMat4("view", view);
-		SetModelTransform(position, scale, rotation);
 
-		// world transformation
-		//glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::translate(model, position);
-		//model = glm::scale(model, scale);
-		//model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0, 0, 1));
-		//model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(0, 1, 0));
-		//model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(1, 0, 0));
-		//primitiveShader.setMat4("model", model);
+		SetModelTransform(position, scale, rotation);
 
 		primitiveShader.setVec3("col", glm::vec3(color.r, color.g, color.b));
 
@@ -558,6 +552,34 @@ namespace Reality
 		lines += 1;
 		drawCalls++;
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		renderDeltaTime += glfwGetTime() - time;
+	}
+
+	void RenderUtil::DrawTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const Color& color)
+	{
+		float time = glfwGetTime();
+
+		glm::vec3 vertices[] = {a,b,c};
+
+		glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(triangleVAO);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		primitiveShader.use();
+
+		SetModelTransform(glm::mat4(1.0f));
+
+		primitiveShader.setVec3("col", glm::vec3(color.r, color.g, color.b));
+
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		verts += 3;
+		triangles += 1;
+		drawCalls++;
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		renderDeltaTime += glfwGetTime() - time;
 	}
 

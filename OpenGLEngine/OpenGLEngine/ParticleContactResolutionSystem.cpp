@@ -87,7 +87,7 @@ namespace Reality
 			return;
 		}
 
-		bool isAvalid = contact.entityA.hasComponent<ParticleComponent>();
+ 		bool isAvalid = contact.entityA.hasComponent<ParticleComponent>();
 		bool isBvalid = contact.entityB.hasComponent<ParticleComponent>();
 		float invM1 = isAvalid ? contact.entityA.getComponent<ParticleComponent>().inverseMass : 0;
 		float invM2 = isBvalid ? contact.entityB.getComponent<ParticleComponent>().inverseMass : 0;
@@ -138,45 +138,49 @@ namespace Reality
 	void ParticleContactResolutionSystem::Update(float deltaTime)
 	{
 		iterationsUsed = 0;
-		iterations = getEntities().size();
+		iterations = getEntities().size() * 2;
+
 		if (getEntities().size() > 0)
 		{
-			ParticleContactComponent& bestContact = getEntities()[0].getComponent<ParticleContactComponent>();
-			ParticleContactComponent& lastBestContact = getEntities()[0].getComponent<ParticleContactComponent>();
+			unsigned int bestContactIndex = 0;
+			unsigned int lastBest = 0;
 			while (iterationsUsed < iterations)
 			{
 				// Find the contact with the largest closing velocity
 				float max = 0;
-				for (auto e : getEntities())
+				for (int i = 0; i < getEntities().size(); i++)
 				{
+					auto e = getEntities()[i];
 					auto &contact = e.getComponent<ParticleContactComponent>();
 					if (iterationsUsed > 0)
 					{
-						UpdateInterpenetration(lastBestContact, contact);
+						UpdateInterpenetration(getEntities()[lastBest].getComponent<ParticleContactComponent>(), contact);
 					}
 					float sepVel = CalculateSeparatingVelocity(contact);
 					if (sepVel < max)
 					{
 						max = sepVel;
-						bestContact = contact;
+						bestContactIndex = i;
 					}
 				}
 				if (max >= 0)
 				{
 					break;
 				}
+				auto& bestContact = getEntities()[bestContactIndex].getComponent<ParticleContactComponent>();
 				ResolveVelocity(bestContact, deltaTime);
 				ResolveInterpenetration(bestContact);
-				lastBestContact = bestContact;
+				lastBest = bestContactIndex;
 				iterationsUsed++;
 			}
+
 			for (auto e : getEntities())
 			{
-				/*auto &contact = e.getComponent<ParticleContactComponent>();
-				ResolveVelocity(contact, deltaTime);
-				ResolveInterpenetration(contact);*/
 				e.kill();
 			}
 		}
+
+
+
 	}
 }

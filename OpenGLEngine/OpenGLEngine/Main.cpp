@@ -11,6 +11,7 @@
 #include "SphereContactGeneratorSystem.h"
 #include "ParticleContactResolutionSystem.h"
 #include "CableComponentSystem.h"
+#include "RodSystem.h"
 #include "FPSControlSystem.h"
 #include "DynamicDirectionalLightSystem.h"
 #include "DynamicPointLightSystem.h"
@@ -34,6 +35,7 @@ void MakeABunchaSpheres(ECSWorld& world);
 void MakeABunchaBungees(ECSWorld& world);
 void MakeABunchaBuoyancy(ECSWorld& world);
 void MakeACable(ECSWorld& world);
+void MakeCablesAndRods(ECSWorld& world);
 void SetupLights(ECSWorld& world);
 
 int main()
@@ -64,6 +66,7 @@ int main()
 	//MakeACable(world);
 	MakeABunchaBungees(world);
 	MakeABunchaBuoyancy(world);
+	MakeCablesAndRods(world);
 
 	// Create Systems
 	world.getSystemManager().addSystem<RenderingSystem>();
@@ -76,6 +79,7 @@ int main()
 	world.getSystemManager().addSystem<PairedSpringForceGeneratorSystem>();
 	world.getSystemManager().addSystem<SphereContactGeneratorSystem>();
 	world.getSystemManager().addSystem<CableComponentSystem>();
+	world.getSystemManager().addSystem<RodSystem>();
 	world.getSystemManager().addSystem<ParticleContactResolutionSystem>();
 	world.getSystemManager().addSystem<ForceAccumulatorSystem>();
 	world.getSystemManager().addSystem<FPSControlSystem>();
@@ -135,15 +139,17 @@ int main()
 		world.getSystemManager().getSystem<GravityForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<FixedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<PairedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BungeeForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BuoyancyForceGeneratorSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<ParticleSystem>().Update(fixedDeltaTime);
 
 		// Physics Solvers
-		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
+
+		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<RodSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<ParticleContactResolutionSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<ParticleSystem>().Update(fixedDeltaTime);
 
 		// Rendering Update
 		world.getSystemManager().getSystem<DynamicDirectionalLightSystem>().Update(deltaTime);
@@ -209,10 +215,6 @@ void LoadModels(ECSWorld& world)
 	world.data.assetLoader->StartModelLoading({
 		"Resources/Models/Sponza-master/sponza.obj",
 		"Resources/Models/nanosuit/nanosuit.obj"
-		//"Resources/Models/ribbon-ball/model.obj",
-		//"Resources/Models/animeclassroom/anime school.obj",
-		//"Resources/Models/bagan-khayiminga-temple-interior/model.obj",
-		//"Resources/Models/Robot/source/Zbot_Animation.fbx"
 		});
 }
 
@@ -322,6 +324,58 @@ void MakeACable(ECSWorld& world)
 	e.addComponent<CableComponent>(e1, e2, 20);
 }
 
+void MakeCablesAndRods(ECSWorld& world)
+{
+	auto eFixed = world.createEntity();
+	eFixed.addComponent<TransformComponent>(Vector3(10, 40, 0));
+	//e1.addComponent<ParticleComponent>(1, Vector3(0,0,0), 0);
+
+	auto eFixed2 = world.createEntity();
+	eFixed2.addComponent<TransformComponent>(Vector3(20, 10, 0));
+
+	auto eFixed3 = world.createEntity();
+	eFixed3.addComponent<TransformComponent>(Vector3(-20, 10, 0));
+
+	auto e1 = world.createEntity();
+	e1.addComponent<TransformComponent>(Vector3(0, 30, 0));
+	e1.addComponent<ParticleComponent>(10);
+
+	auto e2 = world.createEntity();
+	e2.addComponent<TransformComponent>(Vector3(-10, 20, 0));
+	e2.addComponent<ParticleComponent>(10);
+
+	auto e3 = world.createEntity();
+	e3.addComponent<TransformComponent>(Vector3(0, 10, 0));
+	e3.addComponent<ParticleComponent>(10);
+
+	auto e4 = world.createEntity();
+	e4.addComponent<TransformComponent>(Vector3(10, 20, 0));
+	e4.addComponent<ParticleComponent>(10);
+
+	auto eCable = world.createEntity();
+	eCable.addComponent<CableComponent>(eFixed, e1, 20);
+
+	auto eCable2 = world.createEntity();
+	eCable2.addComponent<PairedSpringComponent>(1000, 20, eFixed2, e4);
+
+	auto eCable3 = world.createEntity();
+	eCable3.addComponent<PairedSpringComponent>(1000, 20, eFixed3, e2);
+
+	auto eRod1 = world.createEntity();
+	eRod1.addComponent<RodComponent>(e1, e2, 10 * sqrt(2));
+	auto eRod2 = world.createEntity();
+	eRod2.addComponent<RodComponent>(e2, e3, 10 * sqrt(2));
+	auto eRod3 = world.createEntity();
+	eRod3.addComponent<RodComponent>(e3, e4, 10 * sqrt(2));
+	auto eRod4 = world.createEntity();
+	eRod4.addComponent<RodComponent>(e4, e1, 10 * sqrt(2));
+
+	auto eRodDiagonal1 = world.createEntity();
+	eRodDiagonal1.addComponent<RodComponent>(e1, e3, 20);
+	auto eRodDiagonal2 = world.createEntity();
+	eRodDiagonal2.addComponent<RodComponent>(e2, e4, 20);
+}
+
 void SetupLights(ECSWorld& world)
 {
 	auto l = world.createEntity();
@@ -398,7 +452,6 @@ void SetupLights(ECSWorld& world)
 		}
 	}
 }
-
 void MakeABunchaBungees(ECSWorld& world)
 {
 	auto e = world.createEntity();
@@ -441,6 +494,6 @@ void MakeABunchaBuoyancy(ECSWorld& world)
 
 		auto b = world.createEntity();
 		b.addComponent<TransformComponent>(pos, scale);
-		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity );
+		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity);
 	}
 }

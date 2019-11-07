@@ -78,6 +78,7 @@ namespace Reality
 		void DrawSphere(const glm::vec3& position = glm::vec3(0, 0, 0), float radius = 1, const Color& color = Color(0, 1, 0, 1));
 		void DrawCube(const glm::vec3& position = glm::vec3(0,0,0), const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::vec3& rotation = glm::vec3(0, 0, 0), const Color& color = Color(0,1,0,1));
 		void DrawLine(const glm::vec3& start, const glm::vec3& end, const Color& color = Color(0, 1, 0, 1));
+		void DrawTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const Color& color = Color(0, 1, 0, 1));
 
 		/*TextRender*/
 		void RenderText(std::string text, float x, float y, float scale, Color color);
@@ -127,6 +128,7 @@ namespace Reality
 		unsigned int cubeVBO, cubeVAO;
 		unsigned int sphereVBO, sphereIBO, sphereVAO, numIndices;
 		unsigned int lineVBO, lineVAO;
+		unsigned int triangleVBO, triangleVAO;
 		GLuint textVAO, textVBO;
 		Material primitiveShader = Material(new Shader("Shaders/vertexDefault.vs", "Shaders/FragmentConstant.fs"));
 		Material primitiveShaderBasic = Material(new Shader("Shaders/SimpleVertex.vs", "Shaders/FragmentConstant.fs"));
@@ -138,6 +140,7 @@ namespace Reality
 		void SetUpCubePrimitive();
 		void SetUpSpherePrimitive();
 		void SetUpLinePrimitive();
+		void SetupTrianglePrimitive();
 		void SetupTextRender();
 
 		/*Debug*/

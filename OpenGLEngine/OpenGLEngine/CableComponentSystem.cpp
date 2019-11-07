@@ -17,8 +17,12 @@ namespace Reality
 			float length = glm::length(cable.entityA.getComponent<TransformComponent>().position -
 				cable.entityB.getComponent<TransformComponent>().position);
 			
-			getWorld().data.renderUtil->DrawSphere(cable.entityA.getComponent<TransformComponent>().position);
-			getWorld().data.renderUtil->DrawSphere(cable.entityB.getComponent<TransformComponent>().position);
+			getWorld().data.renderUtil->DrawSphere(cable.entityA.getComponent<TransformComponent>().position, 1, Color::Magenta);
+			getWorld().data.renderUtil->DrawSphere(cable.entityB.getComponent<TransformComponent>().position, 1, Color::Magenta);
+
+			getWorld().data.renderUtil->DrawLine(cable.entityA.getComponent<TransformComponent>().position,
+				cable.entityB.getComponent<TransformComponent>().position, Color::Blue);
+
 			if (length < cable.maxLength)
 			{
 				continue;
