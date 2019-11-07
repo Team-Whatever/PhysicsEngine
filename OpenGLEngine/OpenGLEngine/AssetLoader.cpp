@@ -50,15 +50,15 @@ namespace Reality
 		shaderCacheMutex.unlock();
 	}
 
-	void AssetLoader::StartModelLoading(const std::vector<std::string>& modelPaths)
+	void AssetLoader::StartModelLoading(const std::vector<ModelData>& modelPaths)
 	{
 		modelsLoaded = std::async(std::launch::async, &AssetLoader::LaunchModelLoadingThreads, this, modelPaths);
 	}
 
-	int AssetLoader::LaunchModelLoadingThreads(const std::vector<std::string>& modelPaths)
+	int AssetLoader::LaunchModelLoadingThreads(const std::vector<ModelData>& modelPaths)
 	{
 		std::vector<std::thread> modelLoaders;
-		for (const std::string& path : modelPaths)
+		for (const ModelData& path : modelPaths)
 		{
 			modelLoaders.emplace_back(&AssetLoader::CreateModel, this, std::ref(path));
 		}
@@ -69,7 +69,7 @@ namespace Reality
 		return 1;
 	}
 
-	void AssetLoader::CreateModel(const string &path)
+	void AssetLoader::CreateModel(const ModelData &path)
 	{
 		// Create the model
 		Model* model = new Model();
@@ -81,27 +81,27 @@ namespace Reality
 		modelCacheMutex.unlock();
 	}
 
-	void AssetLoader::LoadDataIntoModel(string const &path, Model* model)
+	void AssetLoader::LoadDataIntoModel(ModelData const &path, Model* model)
 	{
 		// read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(path.modelPath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 		// check for errors
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 		{
 			cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
 			return;
 		}
-		model->path = path;
+		model->path = path.modelPath;
 		// retrieve the directory path of the filepath
-		model->directory = path.substr(0, path.find_last_of('/'));
+		model->directory = path.modelPath.substr(0, path.modelPath.find_last_of('/'));
 		// process materials
-		processMaterials(scene, model);
+		processMaterials(scene, model, path.textures);
 		// process ASSIMP's root node recursively
 		processNode(scene->mRootNode, scene, model);
 	}
 
-	void AssetLoader::processMaterials(const aiScene *scene, Model* model)
+	void AssetLoader::processMaterials(const aiScene *scene, Model* model, const std::vector<std::vector<std::string>>& textures)
 	{
 		// process materials
 		for (int i = 0; i < scene->mNumMaterials; i++)
@@ -115,7 +115,14 @@ namespace Reality
 
 			model->materials.push_back(mat);
 			// 1. diffuse maps
-			loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", mat, model->directory);
+			if (textures.size() > i)
+			{
+				loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", mat, model->directory, textures[i]);
+			}
+			else
+			{
+				loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", mat, model->directory);
+			}
 			loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", mat, model->directory);
 			// Set properties
 			float shininess;
@@ -227,13 +234,17 @@ namespace Reality
 		//loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", mat, model->directory);
 	}
 
-	void AssetLoader::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, Material* material, const string &directory)
+	void AssetLoader::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, Material* material, const string &directory, const std::vector<std::string>& textures)
 	{
 		for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 		{
 			aiString str;
 			mat->GetTexture(type, i, &str);
 			string filename = string(str.C_Str());
+			if (textures.size() > i)
+			{
+				filename = textures[i];
+			}
 			filename = directory + '/' + filename;
 			//filename = "Resources/Models/nanosuit/body_dif.png";
 			// check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
