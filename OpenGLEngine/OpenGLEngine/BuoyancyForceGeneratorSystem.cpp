@@ -79,6 +79,6 @@ namespace Reality
 
 		auto b = getWorld().createEntity();
 		b.addComponent<TransformComponent>(newPos, scale);
-		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity);
+		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 120, entity);
 	}
 }
