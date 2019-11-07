@@ -66,7 +66,7 @@ int main()
 	//MakeACable(world);
 	MakeABunchaBungees(world);
 	MakeABunchaBuoyancy(world);
-	MakeCablesAndRods(world);
+	//MakeCablesAndRods(world);
 
 	// Create Systems
 	world.getSystemManager().addSystem<RenderingSystem>();
@@ -121,7 +121,7 @@ int main()
 		}
 		if(shadersLoaded && !modelsLoadStarted)
 		{
-			LoadModels(world);
+			//LoadModels(world);
 			modelsLoadStarted = true;
 		}
 		// Process Input
@@ -484,7 +484,7 @@ void MakeABunchaBuoyancy(ECSWorld& world)
 {
 	for (int i = 0; i < 1; i++)
 	{
-		Vector3 pos = Vector3(RANDOM_FLOAT(-15.0f, 15.0f), RANDOM_FLOAT(20.0f, 30.0f), RANDOM_FLOAT(-15.0f, 15.0f));
+		Vector3 pos = Vector3(RANDOM_FLOAT(-50.0f, -30.0f), RANDOM_FLOAT(20.0f, 30.0f), RANDOM_FLOAT(-10.0f, 10.0f));
 		Vector3 scale = Vector3(30, 30, 30);
 
 		auto entity = world.createEntity();
