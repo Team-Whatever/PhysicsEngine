@@ -16,8 +16,6 @@
 #include "DynamicDirectionalLightSystem.h"
 #include "DynamicPointLightSystem.h"
 #include "DynamicSpotLightSystem.h"
-#include "BungeeForceGeneratorSystem.h"
-#include "BuoyancyForceGeneratorSystem.h"
 #include <string>
 #include <stdlib.h>     
 #include <time.h>       
@@ -32,8 +30,6 @@ void LoadModels(ECSWorld& world);
 void MakeABunchaObjects(ECSWorld& world);
 void MakeABunchaSprings(ECSWorld& world);
 void MakeABunchaSpheres(ECSWorld& world);
-void MakeABunchaBungees(ECSWorld& world);
-void MakeABunchaBuoyancy(ECSWorld& world);
 void MakeACable(ECSWorld& world);
 void MakeCablesAndRods(ECSWorld& world);
 void SetupLights(ECSWorld& world);
@@ -60,13 +56,11 @@ int main()
 	wall.addComponent<ModelComponent>("Resources/Models/Sponza-master/sponza.obj");
 
 	SetupLights(world);
-	//MakeABunchaObjects(world);
+	MakeABunchaObjects(world);
 	//MakeABunchaSpheres(world);
 	//MakeABunchaSprings(world);
 	//MakeACable(world);
-	MakeABunchaBungees(world);
-	MakeABunchaBuoyancy(world);
-	//MakeCablesAndRods(world);
+	MakeCablesAndRods(world);
 
 	// Create Systems
 	world.getSystemManager().addSystem<RenderingSystem>();
@@ -79,15 +73,13 @@ int main()
 	world.getSystemManager().addSystem<PairedSpringForceGeneratorSystem>();
 	world.getSystemManager().addSystem<SphereContactGeneratorSystem>();
 	world.getSystemManager().addSystem<CableComponentSystem>();
-	world.getSystemManager().addSystem<RodSystem>();
 	world.getSystemManager().addSystem<ParticleContactResolutionSystem>();
 	world.getSystemManager().addSystem<ForceAccumulatorSystem>();
 	world.getSystemManager().addSystem<FPSControlSystem>();
+	world.getSystemManager().addSystem<RodSystem>();
 	world.getSystemManager().addSystem<DynamicDirectionalLightSystem>();
 	world.getSystemManager().addSystem<DynamicPointLightSystem>();
 	world.getSystemManager().addSystem<DynamicSpotLightSystem>();
-	world.getSystemManager().addSystem<BungeeForceGeneratorSystem>();
-	world.getSystemManager().addSystem<BuoyancyForceGeneratorSystem>();
 
 	float time = glfwGetTime();
 	float stepTime = glfwGetTime();
@@ -95,6 +87,8 @@ int main()
 	float elapsedDeltaTime = 0;
 	float logicDelta = 0;
 	float debugDelta = 0;
+	bool spawn = false;
+	auto player = world.createEntity();
 
 	LoadShaders(world);
 	bool shadersLoaded = false;
@@ -121,7 +115,7 @@ int main()
 		}
 		if(shadersLoaded && !modelsLoadStarted)
 		{
-			//LoadModels(world);
+			LoadModels(world);
 			modelsLoadStarted = true;
 		}
 		// Process Input
@@ -139,17 +133,14 @@ int main()
 		world.getSystemManager().getSystem<GravityForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<FixedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<PairedSpringForceGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<BungeeForceGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<BuoyancyForceGeneratorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<ParticleSystem>().Update(fixedDeltaTime);
-
-		// Physics Solvers
-
 		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<CableComponentSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<RodSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<RodSystem>().Update(fixedDeltaTime); 
+
+		// Physics Solvers
+		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<ParticleContactResolutionSystem>().Update(fixedDeltaTime);
+		world.getSystemManager().getSystem<ParticleSystem>().Update(fixedDeltaTime);
 
 		// Rendering Update
 		world.getSystemManager().getSystem<DynamicDirectionalLightSystem>().Update(deltaTime);
@@ -198,6 +189,27 @@ int main()
 
 		// Show FPS in console
 		//std::cout << "FPS : " << 1.0f / deltaTime << std::endl;
+
+
+
+
+		if (glfwGetKey(world.data.renderUtil->window->glfwWindow, GLFW_KEY_E) == GLFW_PRESS && !spawn)
+		{
+			spawn = true; 
+			player.kill();
+			player = world.createEntity(); 
+			player.addComponent<TransformComponent>(Vector3(RANDOM_FLOAT(-20.0F, 20.0F), 40, 5)); 
+			player.addComponent<SphereComponent>(1); 
+			player.addComponent<ParticleComponent>(5, Vector3(0,0,0), 1);
+
+
+			std::cout << "ball supposed to drop..." << std::endl; 
+
+		}
+		else if (glfwGetKey(world.data.renderUtil->window->glfwWindow, GLFW_KEY_E) == GLFW_RELEASE) {
+			spawn = false;
+		}
+
 	}
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
@@ -215,6 +227,10 @@ void LoadModels(ECSWorld& world)
 	world.data.assetLoader->StartModelLoading({
 		"Resources/Models/Sponza-master/sponza.obj",
 		"Resources/Models/nanosuit/nanosuit.obj"
+		//"Resources/Models/ribbon-ball/model.obj",
+		//"Resources/Models/animeclassroom/anime school.obj",
+		//"Resources/Models/bagan-khayiminga-temple-interior/model.obj",
+		//"Resources/Models/Robot/source/Zbot_Animation.fbx"
 		});
 }
 
@@ -297,7 +313,7 @@ void MakeABunchaSpheres(ECSWorld& world)
 		//e.addComponent<TransformComponent>(Vector3(RANDOM_FLOAT(-1, 1), 20,0));
 
 		e.addComponent<TransformComponent>(Vector3(RANDOM_FLOAT(-15.0f, 15.0f), RANDOM_FLOAT(6.0f, 34.0f), RANDOM_FLOAT(-15.0f, 15.0f)));
-		e.addComponent<ParticleComponent>(1, Vector3(RANDOM_FLOAT(-5, 5), RANDOM_FLOAT(-5, 5), RANDOM_FLOAT(-5, 5)));
+		e.addComponent<ParticleComponent>(1, Vector3(RANDOM_FLOAT(-5, 5), RANDOM_FLOAT(-5, 5), RANDOM_FLOAT(-5, 5))); 
 		e.addComponent<SphereComponent>(1);
 		Color col = Color(0, RANDOM_FLOAT(0.0f, 1.0f), RANDOM_FLOAT(0.0f, 1.0f));
 		//e.addComponent<DynamicPointLightComponent>(20.0f, col, col, col);
@@ -315,6 +331,7 @@ void MakeACable(ECSWorld& world)
 	auto e1 = world.createEntity();
 	e1.addComponent<TransformComponent>(Vector3(0, 40, 0));
 	//e1.addComponent<ParticleComponent>(1, Vector3(0,0,0), 0);
+	
 
 	auto e2 = world.createEntity();
 	e2.addComponent<TransformComponent>(Vector3(0, 30, 0));
@@ -324,56 +341,307 @@ void MakeACable(ECSWorld& world)
 	e.addComponent<CableComponent>(e1, e2, 20);
 }
 
-void MakeCablesAndRods(ECSWorld& world)
+void MakeCablesAndRods(ECSWorld & world)
 {
+	//world.eFixed[27];
+	
+	/*
+	for (int i = 0; i < 8; i++) {
+		auto eFixed = world.createEntity();
+		eFixed.addComponent<TransformComponent>(Vector3(30, 40, 0));
+		eFixed.addComponent<SphereComponent>(1);
+		eFixed.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+
+	}*/
+
+
+	//location:  farthest point to the right, away from camera starting position
+	/*
 	auto eFixed = world.createEntity();
-	eFixed.addComponent<TransformComponent>(Vector3(10, 40, 0));
-	//e1.addComponent<ParticleComponent>(1, Vector3(0,0,0), 0);
+	eFixed.addComponent<TransformComponent>(Vector3(30, 40, 0)); 
+	eFixed.addComponent<SphereComponent>(1);
+	eFixed.addComponent<ParticleComponent>(10000000, Vector3(0,0,0), 0); 
+	//eFixed.addComponent<ParticleComponent>(1, Vector3(0,0,0), 0);
 
+	auto eLowerPoint1 = world.createEntity();
+	eLowerPoint1.addComponent<TransformComponent>(Vector3(30, 30, 0));
+	eLowerPoint1.addComponent<SphereComponent>(1);
+	eLowerPoint1.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable1 = world.createEntity();
+	eCable1.addComponent<CableComponent>(eFixed, eLowerPoint1, 10);
+	*/
+
+
+	// ------------------------------------------------------------------------
 	auto eFixed2 = world.createEntity();
-	eFixed2.addComponent<TransformComponent>(Vector3(20, 10, 0));
+	eFixed2.addComponent<TransformComponent>(Vector3(20, 40, 0)); 
+	eFixed2.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed2.addComponent<SphereComponent>(1);
 
-	auto eFixed3 = world.createEntity();
-	eFixed3.addComponent<TransformComponent>(Vector3(-20, 10, 0));
-
-	auto e1 = world.createEntity();
-	e1.addComponent<TransformComponent>(Vector3(0, 30, 0));
-	e1.addComponent<ParticleComponent>(10);
-
-	auto e2 = world.createEntity();
-	e2.addComponent<TransformComponent>(Vector3(-10, 20, 0));
-	e2.addComponent<ParticleComponent>(10);
-
-	auto e3 = world.createEntity();
-	e3.addComponent<TransformComponent>(Vector3(0, 10, 0));
-	e3.addComponent<ParticleComponent>(10);
-
-	auto e4 = world.createEntity();
-	e4.addComponent<TransformComponent>(Vector3(10, 20, 0));
-	e4.addComponent<ParticleComponent>(10);
-
-	auto eCable = world.createEntity();
-	eCable.addComponent<CableComponent>(eFixed, e1, 20);
+	auto eLowerPoint2 = world.createEntity();
+	eLowerPoint2.addComponent<TransformComponent>(Vector3(20, 30, 0)); 
+	eLowerPoint2.addComponent<SphereComponent>(1); 
+	eLowerPoint2.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
 
 	auto eCable2 = world.createEntity();
-	eCable2.addComponent<PairedSpringComponent>(1000, 20, eFixed2, e4);
+	eCable2.addComponent<CableComponent>(eFixed2, eLowerPoint2, 10);
+
+
+	// ------------------------------------------------------------------------
+	auto eFixed3 = world.createEntity();
+	eFixed3.addComponent<TransformComponent>(Vector3(10, 40, 0));
+	eFixed3.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed3.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint3 = world.createEntity();
+	eLowerPoint3.addComponent<TransformComponent>(Vector3(10, 30, 0)); 
+	eLowerPoint3.addComponent<SphereComponent>(1);
+	eLowerPoint3.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
 
 	auto eCable3 = world.createEntity();
-	eCable3.addComponent<PairedSpringComponent>(1000, 20, eFixed3, e2);
+	eCable3.addComponent<CableComponent>(eFixed3, eLowerPoint3, 10);
 
-	auto eRod1 = world.createEntity();
-	eRod1.addComponent<RodComponent>(e1, e2, 10 * sqrt(2));
+
+	// ------------------------------------------------------------------------
+	auto eFixed4 = world.createEntity();
+	eFixed4.addComponent<TransformComponent>(Vector3(0, 40, 0));
+	eFixed4.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed4.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint4 = world.createEntity();
+	eLowerPoint4.addComponent<TransformComponent>(Vector3(0, 30, 0));
+	eLowerPoint4.addComponent<SphereComponent>(1);
+	eLowerPoint4.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable4 = world.createEntity();
+	eCable4.addComponent<CableComponent>(eFixed4, eLowerPoint4, 10);
+
+
+	// ------------------------------------------------------------------------
+	auto eFixed5 = world.createEntity();
+	eFixed5.addComponent<TransformComponent>(Vector3(-10, 40, 0));
+	eFixed5.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed5.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint5 = world.createEntity();
+	eLowerPoint5.addComponent<TransformComponent>(Vector3(-10, 30, 0));
+	eLowerPoint5.addComponent<SphereComponent>(1);
+	eLowerPoint5.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable5 = world.createEntity();
+	eCable5.addComponent<CableComponent>(eFixed5, eLowerPoint5, 10);
+
+
+	// ------------------------------------------------------------------------
+	auto eFixed6 = world.createEntity();
+	eFixed6.addComponent<TransformComponent>(Vector3(-20, 40, 0));
+	eFixed6.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed6.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint6 = world.createEntity();
+	eLowerPoint6.addComponent<TransformComponent>(Vector3(-20, 30, 0));
+	eLowerPoint6.addComponent<SphereComponent>(1);
+	eLowerPoint6.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable6 = world.createEntity();
+	eCable6.addComponent<CableComponent>(eFixed6, eLowerPoint6, 10);
+
+	// ------------------------------------------------------------------------
+	/*
+	auto eFixed7 = world.createEntity();
+	eFixed7.addComponent<TransformComponent>(Vector3(-30, 40, 0));
+	eFixed7.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed7.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint7 = world.createEntity();
+	eLowerPoint7.addComponent<TransformComponent>(Vector3(-30, 30, 0));
+	eLowerPoint7.addComponent<SphereComponent>(1);
+	eLowerPoint7.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0); 
+
+	auto eCable7 = world.createEntity();
+	eCable7.addComponent<CableComponent>(eFixed7, eLowerPoint7, 10);
+	*/
+	// ------------------------------------------------------------------------
+	/*
+	auto eFixed8 = world.createEntity();
+	eFixed8.addComponent<TransformComponent>(Vector3(-40, 40, 0));
+	eFixed8.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed8.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint8 = world.createEntity();
+	eLowerPoint8.addComponent<TransformComponent>(Vector3(-40, 30, 0));
+	eLowerPoint8.addComponent<SphereComponent>(1);
+	eLowerPoint8.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable8 = world.createEntity();
+	eCable8.addComponent<CableComponent>(eFixed8, eLowerPoint8, 10);
+	*/
+	// ------------------------------------------------------------------------
+	//auto eRod1 = world.createEntity();
+	//eRod1.addComponent<RodComponent>(eFixed, eFixed2, 10);
 	auto eRod2 = world.createEntity();
-	eRod2.addComponent<RodComponent>(e2, e3, 10 * sqrt(2));
+	eRod2.addComponent<RodComponent>(eFixed2, eFixed3, 10);
 	auto eRod3 = world.createEntity();
-	eRod3.addComponent<RodComponent>(e3, e4, 10 * sqrt(2));
+	eRod3.addComponent<RodComponent>(eFixed3, eFixed4, 10);
 	auto eRod4 = world.createEntity();
-	eRod4.addComponent<RodComponent>(e4, e1, 10 * sqrt(2));
+	eRod4.addComponent<RodComponent>(eFixed4, eFixed5, 10); 
+	auto eRod5 = world.createEntity();
+	eRod5.addComponent<RodComponent>(eFixed5, eFixed6, 10);
+	//auto eRod6 = world.createEntity();
+	//eRod6.addComponent<RodComponent>(eFixed6, eFixed7, 10);
+	//auto eRod7 = world.createEntity();
+	//eRod7.addComponent<RodComponent>(eFixed7, eFixed8, 10);
 
-	auto eRodDiagonal1 = world.createEntity();
-	eRodDiagonal1.addComponent<RodComponent>(e1, e3, 20);
-	auto eRodDiagonal2 = world.createEntity();
-	eRodDiagonal2.addComponent<RodComponent>(e2, e4, 20);
+
+
+
+	// ------------------------------------------------------------------------
+	/*
+	auto eFixed11 = world.createEntity();
+	eFixed11.addComponent<TransformComponent>(Vector3(30, 40, 10));
+	eFixed11.addComponent<SphereComponent>(1);
+	eFixed11.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	//eFixed.addComponent<ParticleComponent>(1, Vector3(0,0,0), 0);
+
+	auto eLowerPoint11 = world.createEntity();
+	eLowerPoint11.addComponent<TransformComponent>(Vector3(30, 30, 10));
+	eLowerPoint11.addComponent<SphereComponent>(1);
+	eLowerPoint11.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0); 
+
+	auto eCable11 = world.createEntity();
+	eCable11.addComponent<CableComponent>(eFixed11, eLowerPoint11, 10); 
+	*/
+
+	// ------------------------------------------------------------------------
+	auto eFixed12 = world.createEntity();
+	eFixed12.addComponent<TransformComponent>(Vector3(20, 40, 10));
+	eFixed12.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed12.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint12 = world.createEntity();
+	eLowerPoint12.addComponent<TransformComponent>(Vector3(20, 30, 10));
+	eLowerPoint12.addComponent<SphereComponent>(1);
+	eLowerPoint12.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable12 = world.createEntity();
+	eCable12.addComponent<CableComponent>(eFixed12, eLowerPoint12, 10);
+
+	// ------------------------------------------------------------------------
+	auto eFixed13 = world.createEntity();
+	eFixed13.addComponent<TransformComponent>(Vector3(10, 40, 10));
+	eFixed13.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed13.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint13 = world.createEntity();
+	eLowerPoint13.addComponent<TransformComponent>(Vector3(10, 30, 10));
+	eLowerPoint13.addComponent<SphereComponent>(1);
+	eLowerPoint13.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable13 = world.createEntity();
+	eCable13.addComponent<CableComponent>(eFixed13, eLowerPoint13, 10);
+
+	// ------------------------------------------------------------------------
+	auto eFixed14 = world.createEntity();
+	eFixed14.addComponent<TransformComponent>(Vector3(0, 40, 10));
+	eFixed14.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed14.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint14 = world.createEntity();
+	eLowerPoint14.addComponent<TransformComponent>(Vector3(0, 30, 10));
+	eLowerPoint14.addComponent<SphereComponent>(1);
+	eLowerPoint14.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable14 = world.createEntity();
+	eCable14.addComponent<CableComponent>(eFixed14, eLowerPoint14, 10);
+
+	// ------------------------------------------------------------------------
+	auto eFixed15 = world.createEntity();
+	eFixed15.addComponent<TransformComponent>(Vector3(-10, 40, 10));
+	eFixed15.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed15.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint15 = world.createEntity();
+	eLowerPoint15.addComponent<TransformComponent>(Vector3(-10, 30, 10));
+	eLowerPoint15.addComponent<SphereComponent>(1);
+	eLowerPoint15.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable15 = world.createEntity();
+	eCable15.addComponent<CableComponent>(eFixed15, eLowerPoint15, 10);
+
+	// ------------------------------------------------------------------------
+	auto eFixed16 = world.createEntity();
+	eFixed16.addComponent<TransformComponent>(Vector3(-20, 40, 10));
+	eFixed16.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed16.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint16 = world.createEntity();
+	eLowerPoint16.addComponent<TransformComponent>(Vector3(-20, 30, 10));
+	eLowerPoint16.addComponent<SphereComponent>(1);
+	eLowerPoint16.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable16 = world.createEntity();
+	eCable16.addComponent<CableComponent>(eFixed16, eLowerPoint16, 10);
+
+	// ------------------------------------------------------------------------
+	/*
+	auto eFixed17 = world.createEntity();
+	eFixed17.addComponent<TransformComponent>(Vector3(-30, 40, 10));
+	eFixed17.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed17.addComponent<SphereComponent>(1);
+
+	auto eLowerPoint17 = world.createEntity();
+	eLowerPoint17.addComponent<TransformComponent>(Vector3(-30, 30, 10));
+	eLowerPoint17.addComponent<SphereComponent>(1);
+	eLowerPoint17.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0); 
+
+	auto eCable17 = world.createEntity();
+	eCable17.addComponent<CableComponent>(eFixed17, eLowerPoint17, 10); 
+	*/
+	// ------------------------------------------------------------------------
+	/*
+	auto eFixed18 = world.createEntity();
+	eFixed18.addComponent<TransformComponent>(Vector3(-40, 40, 10));
+	eFixed18.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed18.addComponent<SphereComponent>(1); 
+
+	auto eLowerPoint18 = world.createEntity();
+	eLowerPoint18.addComponent<TransformComponent>(Vector3(-40, 30, 10));
+	eLowerPoint18.addComponent<SphereComponent>(1);
+	eLowerPoint18.addComponent<ParticleComponent>(5, Vector3(0, 0, 0), 0);
+
+	auto eCable18 = world.createEntity();
+	eCable18.addComponent<CableComponent>(eFixed18, eLowerPoint18, 10);
+	*/
+	// -----------------------------------------------------------------------------------------
+
+	//auto eRod11 = world.createEntity();
+	//eRod11.addComponent<RodComponent>(eFixed11, eFixed12, 10);
+	auto eRod12 = world.createEntity(); 
+	eRod12.addComponent<RodComponent>(eFixed12, eFixed13, 10); 
+	auto eRod13 = world.createEntity();
+	eRod13.addComponent<RodComponent>(eFixed13, eFixed14, 10);
+	auto eRod14 = world.createEntity();
+	eRod14.addComponent<RodComponent>(eFixed14, eFixed15, 10);
+	auto eRod15 = world.createEntity();
+	eRod15.addComponent<RodComponent>(eFixed15, eFixed16, 10);
+	//auto eRod16 = world.createEntity();
+	//eRod16.addComponent<RodComponent>(eFixed16, eFixed17, 10);
+	//auto eRod17 = world.createEntity();
+	//eRod17.addComponent<RodComponent>(eFixed17, eFixed18, 10);
+
+	
+	
+	
+
+
+	/*
+	auto eRodDiag1 = world.createEntity();
+	eRodDiag1.addComponent<RodComponent>(e1, e3, 20);
+	auto eRodDiag2 = world.createEntity();
+	eRodDiag2.addComponent<RodComponent>(e2, e4, 20); 
+	*/
+
 }
 
 void SetupLights(ECSWorld& world)
@@ -450,50 +718,5 @@ void SetupLights(ECSWorld& world)
 			pl1.addComponent<DynamicSpotLightComponent>(10.0f, 100, Color(0, 0, 0), cols[3 - j], cols[3 - j], 5);
 			pl1.addComponent<RotateComponent>((i % 2 == 0 ? 1 : -1) * 100,100,100);
 		}
-	}
-}
-void MakeABunchaBungees(ECSWorld& world)
-{
-	auto e = world.createEntity();
-	float yOffset = 30;
-	e.addComponent<TransformComponent>(Vector3(-2.5f, 0 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
-	e.addComponent<ParticleComponent>(1000.0f, Vector3(0, 0, 0), 0);
-	e.addComponent<SphereComponent>();
-
-	auto e2 = world.createEntity();
-	e2.addComponent<TransformComponent>(Vector3(-3.0f, -2 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
-	e2.addComponent<ParticleComponent>(2);
-	e2.addComponent<SphereComponent>();
-
-	auto e3 = world.createEntity();
-	e3.addComponent<TransformComponent>(Vector3(3.0f, -2 + yOffset, -3), Vector3(1.0f, 1.0f, 1.0f));
-	e3.addComponent<ParticleComponent>(2);
-	e3.addComponent<SphereComponent>();
-
-	auto bungeeEntity1 = world.createEntity();
-	bungeeEntity1.addComponent<TransformComponent>();
-	bungeeEntity1.addComponent<BungeeComponent>(2, 1, e, e2);
-
-	auto bungeeEntity2 = world.createEntity();
-	bungeeEntity2.addComponent<TransformComponent>();
-	bungeeEntity2.addComponent<BungeeComponent>(3, 0.5f, e, e3);
-
-}
-
-void MakeABunchaBuoyancy(ECSWorld& world)
-{
-	for (int i = 0; i < 1; i++)
-	{
-		Vector3 pos = Vector3(RANDOM_FLOAT(-50.0f, -30.0f), RANDOM_FLOAT(20.0f, 30.0f), RANDOM_FLOAT(-10.0f, 10.0f));
-		Vector3 scale = Vector3(30, 30, 30);
-
-		auto entity = world.createEntity();
-		entity.addComponent<TransformComponent>(pos);
-		entity.addComponent<ParticleComponent>();
-		//entity.addComponent<SphereComponent>();
-
-		auto b = world.createEntity();
-		b.addComponent<TransformComponent>(pos, scale);
-		b.addComponent<BuoyancyComponent>(scale.y * 0.5f, 10, scale.y, 100, entity);
 	}
 }
