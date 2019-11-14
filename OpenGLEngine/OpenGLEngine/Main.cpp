@@ -210,6 +210,9 @@ int main()
 			spawn = false;
 		}
 
+
+		world.data.renderUtil->DrawSphere(glm::vec3(10,40,0), 20.0f, Color::Red); 
+
 	}
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
@@ -391,7 +394,7 @@ void MakeCablesAndRods(ECSWorld & world)
 	// ------------------------------------------------------------------------
 	auto eFixed3 = world.createEntity();
 	eFixed3.addComponent<TransformComponent>(Vector3(10, 40, 0));
-	eFixed3.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0);
+	eFixed3.addComponent<ParticleComponent>(10000000, Vector3(0, 0, 0), 0); 
 	eFixed3.addComponent<SphereComponent>(1);
 
 	auto eLowerPoint3 = world.createEntity();
@@ -630,7 +633,35 @@ void MakeCablesAndRods(ECSWorld & world)
 	//auto eRod17 = world.createEntity();
 	//eRod17.addComponent<RodComponent>(eFixed17, eFixed18, 10);
 
+		
+
+	const glm::vec3 point1 = glm::vec3(eLowerPoint2.getComponent<TransformComponent>().position.x, eLowerPoint2.getComponent<TransformComponent>().position.y, eLowerPoint2.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point2 = glm::vec3(eLowerPoint3.getComponent<TransformComponent>().position.x, eLowerPoint3.getComponent<TransformComponent>().position.y, eLowerPoint3.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point3 = glm::vec3(eLowerPoint4.getComponent<TransformComponent>().position.x, eLowerPoint4.getComponent<TransformComponent>().position.y, eLowerPoint4.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point4 = glm::vec3(eLowerPoint5.getComponent<TransformComponent>().position.x, eLowerPoint5.getComponent<TransformComponent>().position.y, eLowerPoint5.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point5 = glm::vec3(eLowerPoint6.getComponent<TransformComponent>().position.x, eLowerPoint6.getComponent<TransformComponent>().position.y, eLowerPoint6.getComponent<TransformComponent>().position.z);
 	
+
+	const glm::vec3 point12 = glm::vec3(eLowerPoint12.getComponent<TransformComponent>().position.x, eLowerPoint12.getComponent<TransformComponent>().position.y, eLowerPoint12.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point13 = glm::vec3(eLowerPoint13.getComponent<TransformComponent>().position.x, eLowerPoint13.getComponent<TransformComponent>().position.y, eLowerPoint13.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point14 = glm::vec3(eLowerPoint14.getComponent<TransformComponent>().position.x, eLowerPoint14.getComponent<TransformComponent>().position.y, eLowerPoint14.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point15 = glm::vec3(eLowerPoint15.getComponent<TransformComponent>().position.x, eLowerPoint15.getComponent<TransformComponent>().position.y, eLowerPoint15.getComponent<TransformComponent>().position.z);
+	const glm::vec3 point16 = glm::vec3(eLowerPoint16.getComponent<TransformComponent>().position.x, eLowerPoint16.getComponent<TransformComponent>().position.y, eLowerPoint16.getComponent<TransformComponent>().position.z);
+
+
+	//farthest point to right
+	world.data.renderUtil->DrawTriangle(point1, point2, point12, Color::White); 
+	world.data.renderUtil->DrawTriangle(point2, point13, point12, Color::White); 
+
+	//world.data.renderUtil->DrawLine(glm::vec3(0,0,0), point2, Color::White);
+	world.data.renderUtil->DrawSphere(point1, 20.0f, Color::Red); 
+
+	world.data.renderUtil->DrawTriangle(point2, point3, point14, Color::White);
+	world.data.renderUtil->DrawTriangle(point2, point13, point14, Color::White);
+	
+	auto triangle1 = world.createEntity(); 
+	
+
 	
 	
 

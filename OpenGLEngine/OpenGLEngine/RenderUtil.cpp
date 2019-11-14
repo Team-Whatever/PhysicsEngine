@@ -16,7 +16,7 @@ namespace Reality
 		SetupUBOs();
 		SetUpPrimitiveShaders();
 		SetUpCubePrimitive();
-		SetUpSpherePrimitive();
+		SetUpSpherePrimitive(); 
 		SetUpLinePrimitive();
 		SetupTrianglePrimitive();
 		SetupTextRender();
